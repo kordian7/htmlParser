@@ -1,17 +1,17 @@
 package application;
 
-import java.io.IOException;
-
-import application.parser.Book;
-import application.parser.HtmlDataParser;
+import application.output.OutputGeneratorFactory.OutputTypes;
+import application.parser.HtmlBookDataParser;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -19,8 +19,14 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+
+	final ToggleGroup radioGroup = new ToggleGroup();
+
 	private TextField urlText;
-	private Book book;
+
+	private String output;
+
+	ParserManager<HtmlBookDataParser> parserManager = new ParserManager<HtmlBookDataParser>(new HtmlBookDataParser());
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -29,7 +35,7 @@ public class Main extends Application {
 
 			Scene scene = new Scene(grid, 400, 400);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			primaryStage.setTitle("My Application");
+			primaryStage.setTitle("HTML Parser");
 
 			primaryStage.setScene(scene);
 			primaryStage.show();
@@ -64,6 +70,18 @@ public class Main extends Application {
 		resultText.setEditable(false);
 		resultText.setWrapText(true);
 
+		RadioButton rb1 = new RadioButton("SQL");
+		rb1.setToggleGroup(radioGroup);
+		rb1.setSelected(true);
+		rb1.setUserData(OutputTypes.SQL);
+
+		RadioButton rb2 = new RadioButton("XML");
+		rb2.setToggleGroup(radioGroup);
+		rb2.setUserData(OutputTypes.XML);
+
+		grid.add(rb1, 0, 2);
+		grid.add(rb2, 0, 3);
+
 		grid.add(resultText, 1, 6);
 
 		final Text actiontarget = new Text();
@@ -73,11 +91,13 @@ public class Main extends Application {
 			actiontarget.setFill(Color.CHARTREUSE);
 			actiontarget.setText("Pobieram dane");
 			btn.setDisable(true);
+			OutputTypes type = (OutputTypes) radioGroup.getSelectedToggle().getUserData();
 			new Thread() {
 				public void run() {
 					try {
-						parseHtml(urlText.getText());
-						resultText.setText(book.toString());
+						output = parserManager.parse(urlText.getText(), type);
+
+						resultText.setText(output);
 						actiontarget.setText("Pobrano dane");
 					} catch (Exception e1) {
 						actiontarget.setFill(Color.FIREBRICK);
@@ -88,18 +108,11 @@ public class Main extends Application {
 					btn.setDisable(false);
 				}
 			}.start();
-			
+
 		});
 		grid.add(hbBtn, 1, 4);
 
 		return grid;
-	}
-
-	private void parseHtml(String url) throws IOException {
-		System.out.println(url);
-		HtmlDataParser htmlDataParser = new HtmlDataParser(urlText.getText());
-		htmlDataParser.parse();
-		book = htmlDataParser.getBook();
 	}
 
 	public static void main(String[] args) {

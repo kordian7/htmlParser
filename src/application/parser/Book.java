@@ -1,16 +1,39 @@
 package application.parser;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import annotations.Column;
+import annotations.Entity;
+
+@Entity(name="book")
+
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Book {
+	@Column(name="tytul")
 	private String tytul;
+	@Column
 	private String autor;
+	@Column
 	private String ISBN;
+	@Column
 	private String wydawnictwo;
+	@Column
 	private int liczbaStron;
+	@Column
 	private String tlumaczenie;
+	@Column
 	private String jezyk;
+	@Column
 	private String kategoria;
+	
 	// TODO - zamiana
+	@Column
 	private String data;
+	
+	
 	public String getTytul() {
 		return tytul;
 	}
